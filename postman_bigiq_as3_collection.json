@@ -1,0 +1,257 @@
+{
+	"info": {
+		"_postman_id": "dda9269e-0983-42d7-8b67-7914a94289b0",
+		"name": "BIG-IQ",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authenticate to BIG-IQ",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c978da4e-54b1-4f35-be8a-3a69a68fa973",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.globals.set(\"_f5_token\", jsonData.token.token);",
+							"pm.globals.set(\"_f5_refresh_token\", jsonData.refreshToken.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"username\": \"admin\",\r\n  \"password\": \"admin\",\r\n  \"loginProviderName\": \"tmos\"\r\n}"
+				},
+				"url": {
+					"raw": "https://{{bigiq_mgmt}}/mgmt/shared/authn/login",
+					"protocol": "https",
+					"host": [
+						"{{bigiq_mgmt}}"
+					],
+					"path": [
+						"mgmt",
+						"shared",
+						"authn",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Refresh Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c978da4e-54b1-4f35-be8a-3a69a68fa973",
+						"exec": [
+							"var jsonData = JSON.parse(responseBody);",
+							"pm.globals.set(\"_f5_token\", jsonData.token.token);"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n \"refreshToken\":{\"token\":\"{{_f5_refresh_token}}\"}\r\n}"
+				},
+				"url": {
+					"raw": "https://{{bigiq_mgmt}}/mgmt/shared/authn/exchange",
+					"protocol": "https",
+					"host": [
+						"{{bigiq_mgmt}}"
+					],
+					"path": [
+						"mgmt",
+						"shared",
+						"authn",
+						"exchange"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "AS3 GET",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c88d364f-e6f6-47ba-ad91-9eb6e64fbaf5",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "X-F5-Auth-Token",
+						"value": "{{_f5_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://{{bigiq_mgmt}}/mgmt/shared/appsvcs/declare",
+					"protocol": "https",
+					"host": [
+						"{{bigiq_mgmt}}"
+					],
+					"path": [
+						"mgmt",
+						"shared",
+						"appsvcs",
+						"declare"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add App3: HTTPS WAF",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c88d364f-e6f6-47ba-ad91-9eb6e64fbaf5",
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "X-F5-Auth-Token",
+						"type": "text",
+						"value": "{{_f5_token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"class\": \"AS3\",\r\n    \"action\": \"patch\",\r\n    \"patchBody\": [\r\n        {\r\n            \"class\": \"ADC\",\r\n            \"target\": {\r\n                \"address\": \"10.1.1.4\"\r\n            },\r\n            \"op\": \"add\",\r\n            \"path\": \"/DemoService/App3\",\r\n            \"value\": {\r\n                \"class\": \"Application\",\r\n                \"schemaOverlay\": \"AS3-F5-HTTPS-WAF-external-url-lb-template-big-iq-default-v1\",\r\n                \"template\": \"https\",\r\n                \"serviceMain\": {\r\n                    \"profileAnalytics\": {\r\n                        \"use\": \"Analytics_Profile\"\r\n                    },\r\n                    \"virtualAddresses\": [\r\n                        \"10.1.10.12\"\r\n                    ],\r\n                    \"enable\": true,\r\n                    \"pool\": \"Pool\",\r\n                    \"virtualPort\": 443,\r\n                    \"policyWAF\": {\r\n                        \"use\": \"WAF_Policy\"\r\n                    },\r\n                    \"serverTLS\": \"TLS_Server\",\r\n                    \"securityLogProfiles\": [\r\n                        {\r\n                            \"use\": \"Security_Log_Profile\"\r\n                        }\r\n                    ],\r\n                    \"class\": \"Service_HTTPS\"\r\n                },\r\n                \"Analytics_Profile\": {\r\n                    \"collectUserAgent\": false,\r\n                    \"collectClientSideStatistics\": true,\r\n                    \"collectGeo\": false,\r\n                    \"collectUrl\": false,\r\n                    \"collectPageLoadTime\": false,\r\n                    \"collectOsAndBrowser\": false,\r\n                    \"collectMethod\": false,\r\n                    \"collectResponseCode\": true,\r\n                    \"collectIp\": false,\r\n                    \"class\": \"Analytics_Profile\"\r\n                },\r\n                \"Pool\": {\r\n                    \"members\": [\r\n                        {\r\n                            \"servicePort\": 80,\r\n                            \"adminState\": \"enable\",\r\n                            \"serverAddresses\": [\r\n                                \"192.168.128.30\",\r\n                                \"192.168.128.31\",\r\n                                \"192.168.128.32\"\r\n                            ]\r\n                        }\r\n                    ],\r\n                    \"class\": \"Pool\"\r\n                },\r\n                \"Certificate\": {\r\n                    \"certificate\": \"-----BEGIN CERTIFICATE-----\\nMIIDlTCCAn2gAwIBAgIUfIhNpxgDnvK5l/mwO6yfJF/BoywwDQYJKoZIhvcNAQEL\\nBQAwWTELMAkGA1UEBhMCVVMxEzARBgNVBAgTCldhc2hpbmd0b24xEDAOBgNVBAcT\\nB1NlYXR0bGUxFDASBgNVBAoTC0Y1IE5ldHdvcmtzMQ0wCwYDVQQLEwREZW1vMB4X\\nDTE4MDUyNDIwNDIwMFoXDTIzMDUyMzIwNDIwMFowHjEcMBoGA1UEAxMTd2lsZGNh\\ncmQuZjVkZW1vLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMwG\\n4Z34xvDokQjxCm+hAmscArXpEWHPaQ/7jnIW65pqYDGPjIfMMvEqZrG2iwgDdBnH\\nBajSQJQds8lRhGV2YOf3lktM3N2+sf+4zF2byo8Ly1MZ45xKwHcujg3ccPo+hxL5\\nMKXnX7w6QAYByOQLIB08EWl8SiYEss4kMKfsa73Ym8eMerfL1OHhbBaszXDl8e6g\\nnOKPqwIPCjAsciqiLENSgBKUmB8xMfhljbUZ99vMCy7OME5Zqoa5kFbZgBYKgUW1\\nUZd8qXbkzFJDZi2gBCHI2ikE9eYbFJQnd25Zg9Cty0PocDtfVQecWTvwheARQkat\\nF7yoIPZOYVVsdtIXBEsCAwEAAaOBjzCBjDAOBgNVHQ8BAf8EBAMCBaAwEwYDVR0l\\nBAwwCgYIKwYBBQUHAwEwDAYDVR0TAQH/BAIwADAdBgNVHQ4EFgQU+xe/Eb30AQZ4\\nj+wFK5hHwCwFZCowHwYDVR0jBBgwFoAUZMweOHhEJSxmmNQsG7olUTP3D4owFwYD\\nVR0RBBAwDoIMKi5mNWRlbW8uY29tMA0GCSqGSIb3DQEBCwUAA4IBAQByF8NXv5+n\\nrq/EWTKnvizSB3KdUWCiy4mRH6DP/QggPkqyuDQdSSz54IN/yjs+SfO4+yOY7vdo\\nSOYuwASVRfRCJAZhp2L5oreqTZlER9HCYX/bWgKPieArepoMTEpnPMqW/BSn4/D6\\n6BgJ2EnbyIM1YRDgn1G8Zs/k2AcCgGPr6wQIJY6T3LBMgrog8rf/GC9aFE/ldYiS\\nDSt8GGTxq2PybG3Le6m4FvJFppsMiLGAvImuwZJ66yp8wHVGiogqWYATS6wWBO3L\\nMrHsR1e8ZjLiA1pjHfsvH/3pNaeZLZHLcJbye2k5TfXVSxaf/AEvFhWsMT54SZnX\\nKti0pndBr0TP\\n-----END CERTIFICATE-----\",\r\n                    \"privateKey\": \"-----BEGIN RSA PRIVATE KEY-----\\nMIIEogIBAAKCAQEAzAbhnfjG8OiRCPEKb6ECaxwCtekRYc9pD/uOchbrmmpgMY+M\\nh8wy8SpmsbaLCAN0GccFqNJAlB2zyVGEZXZg5/eWS0zc3b6x/7jMXZvKjwvLUxnj\\nnErAdy6ODdxw+j6HEvkwpedfvDpABgHI5AsgHTwRaXxKJgSyziQwp+xrvdibx4x6\\nt8vU4eFsFqzNcOXx7qCc4o+rAg8KMCxyKqIsQ1KAEpSYHzEx+GWNtRn328wLLs4w\\nTlmqhrmQVtmAFgqBRbVRl3ypduTMUkNmLaAEIcjaKQT15hsUlCd3blmD0K3LQ+hw\\nO19VB5xZO/CF4BFCRq0XvKgg9k5hVWx20hcESwIDAQABAoIBAA1u6o33IkocVehL\\nzo8Y/8rDll4Z0V4qRNWbj35tieep11mMBQmv5S7Bxu8ugKrvZ0aHNxUterkF15+K\\nsXfoumqrf4bHsccb1iZrKXGEX2rZsPJwwu64cUGnnAzHldy0Hzqdk5loyYHgJ/T9\\nSxfQr7WdDdxvJYapSoiOE3IK+/EM4tsfYhmbz65n+6bmnrbZir1we2Oq8fjvTclK\\nCXx3wrnmwIMEmd2kk2aPb8p++wLLHs99o2qXjjjKHlxgbLMVq0B85R/2jB6CvBMF\\nBlA98fD3omBJmlTje9S2AmBt+Kky9Dn+sv7DGByXWXPzcC99SkgXRMs7f9jSLBUT\\nLHF795kCgYEA8B158XRIz1l822aAmT7mx9UnGLVgm7ZdpzTxrTXZQs4uP9XDFItz\\nQmjVzT6L+zyX9ImPjvPaz/Nrumt6xtDkv8cYC39voZ7spx1SdeMGQKXc6BLLbrkH\\nCuhNY21XTZuSNMP+tczprm9MAfybTE2gy1QpjF+vopKT5b5Kwgi4whcCgYEA2YY5\\nYf02pj0+iFRvgSzR6+zJnoJb36mXttX7a6NA67tqtT7ykQezq2KKkcapMDD24rKB\\n6eXbxbsXx2n9EL+jRhVMbs0joTPvr6IocycqoawfAbHX1mi2u0mdQwZjB5DK0TzC\\nGQg7dSJXseH1C9WhL7swBHsmtJil16cTYJ7dc+0CgYAKcR22dFoeOkQFvoVlJKkg\\nk5JprqmO2/ViqhjAcZELKLA2MnOTVyUiBDEYBdpMiKwLBFhr3Qrs9CcBKl9ief8Y\\nn+3Zwib2nlSoR8woOEEzWoMqzHZwUDeQL939rumXBGbtSICxI0IeRdTGWVffj5io\\nfvZ3lkmrBjjMSuQxX/O47QKBgCmXe5Nb6j4hCbrhgiyN2Fmm/eob/NsoP0ULZzZu\\nkbRBMqcTMSg/87+6aMp01NbNFffEsAh8FeiZ3HMZtfSk3+A/pEyvVre1CYholhlm\\njMU69vbI/X8WqJHpAnPVXcwNiGo3ltlYdJ3yAhiWHtezck2BGi5RKdZwNY2leZQI\\n7EkFAoGAbH4mGLURBThqGHnXjNKxlu50m5iTwZ7b/zHfn0a7W3V1CKNNwjIbqb34\\nCc8yHy0SSC4MjPcckDzKvg117TAPhV5BxwmzJgo9jDWNhEjtmr3UwMQ35PmofXh6\\nOX+JmD4hxonDjNSyehJYKEeV4uYMm8XXBstRyy4pM+ULw86oVto=\\n-----END RSA PRIVATE KEY-----\",\r\n                    \"class\": \"Certificate\"\r\n                },\r\n                \"WAF_Policy\": {\r\n                    \"url\": \"https://raw.githubusercontent.com/f5devcentral/f5-asm-policy-templates/master/owasp_ready_template/owasp-auto-tune-v1.1.xml\",\r\n                    \"class\": \"WAF_Policy\"\r\n                },\r\n                \"TLS_Server\": {\r\n                    \"certificates\": [\r\n                        {\r\n                            \"certificate\": \"Certificate\"\r\n                        }\r\n                    ],\r\n                    \"class\": \"TLS_Server\"\r\n                },\r\n                \"Security_Log_Profile\": {\r\n                    \"application\": {\r\n                        \"servers\": [\r\n                            {\r\n                                \"address\": \"10.1.10.251\",\r\n                                \"port\": \"8514\"\r\n                            }\r\n                        ],\r\n                        \"storageFilter\": {\r\n                            \"requestType\": \"illegal\"\r\n                        }\r\n                    },\r\n                    \"class\": \"Security_Log_Profile\"\r\n                }\r\n            }\r\n        }\r\n    ]\r\n}"
+				},
+				"url": {
+					"raw": "https://{{bigiq_mgmt}}/mgmt/shared/appsvcs/declare",
+					"protocol": "https",
+					"host": [
+						"{{bigiq_mgmt}}"
+					],
+					"path": [
+						"mgmt",
+						"shared",
+						"appsvcs",
+						"declare"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Demo App",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://10.1.10.12/txt",
+					"protocol": "https",
+					"host": [
+						"10",
+						"1",
+						"10",
+						"12"
+					],
+					"path": [
+						"txt"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Attack! Demo App",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Hacker",
+						"value": "cat /etc/passwd",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://10.1.10.12/txt",
+					"protocol": "https",
+					"host": [
+						"10",
+						"1",
+						"10",
+						"12"
+					],
+					"path": [
+						"txt"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
